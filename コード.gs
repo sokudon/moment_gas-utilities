@@ -24,11 +24,22 @@ async function loadAndVerifyScript(url,expectedHash) {
     }
 
     // 4. 検証成功したら文字列に変換して実行
-    const scriptText = response.getContentText(); // 実行用に文字列を取得
+    var scriptText = response.getContentText(); // 実行用に文字列を取得
     Logger.log('ハッシュ検証成功、スクリプトを実行します');
     // Functionコンストラクタで関数を生成
+    var urls="https://raw.githubusercontent.com/jdiamond/posixtz/refs/heads/master/index.js";
+    if(url==urls){
+      var rp=`const posixtz = {
+  formatPosixTZ: formatPosixTZ,
+  parsePosixTZ: parsePosixTZ,
+  getOffsetForLocalDateWithPosixTZ: getOffsetForLocalDateWithPosixTZ,
+  formatLocalDateWithOffset: formatLocalDateWithOffset
+};`;
+  scriptText=scriptText.replace("const moment = require('moment-timezone');",rp);
+  scriptText=scriptText.replace(/exports.+/gm,"");
+
+    }
     const func = new Function(scriptText);
-    
     // 生成した関数を実行
     func();
 
@@ -37,16 +48,29 @@ async function loadAndVerifyScript(url,expectedHash) {
   }
 }
 
+
 function loadMomentWithTzData() {
   // 正規のハッシュ値（例: CDNのスクリプトのSRIから取得）
 var momentJsUrl_Hash = 'sha512-QoJS4DOhdmG8kbbHkxmB/rtPdN62cGWXAdAFWWJPvUFF1/zxcPSdAnn4HhYZSIlVoLVEJ0LesfNlusgm2bPfnA==';
 var momentTzDataUrl_Hash = 'sha512-jLUMbCfI1lDcEvTFsTBgTBvOG4BbvqvZXan+7pwrB0twYDPLNFiucjbeYCDEy2upXmk86DWVpFl3L34fGZMIkw==';
+
+ var posixtz_Hash="sha512-HrIkKMV5wRzuhr1ZlkFylUzaeu0PEEQKQW2/aeQ7RPhWRxJFWcxdXi+P+/gI9g1sxM4JMd3OPtx3fTMABtBJGA==";
 
   const momentJsUrl = "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js";
   loadAndVerifyScript(momentJsUrl,momentJsUrl_Hash);
 
   const momentTzDataUrl = "https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.46/moment-timezone-with-data.js";
   loadAndVerifyScript(momentTzDataUrl,momentTzDataUrl_Hash);
+
+ //var urls="https://raw.githubusercontent.com/jdiamond/posixtz/refs/heads/master/index.js";
+  // loadAndVerifyScript(urls,posixtz_Hash);
+}
+
+function posixtzzz(){
+var tz=getOffsetForLocalDateWithPosixTZ('2025-11-02T02:30:00-07:00', 'PST8PDT,M3.2.0,M11.1.0')/60;
+
+var s=testTimeSpantz();
+  return tz; // セルに表示する値を返す
 }
 
 // カスタム関数
@@ -85,7 +109,7 @@ function testTimeSpantz() {
   const end = "2024-11-03T01:30:00-08:00";
   const timeZone = "Asia/Tokyo";
   const span =getTimeSpan(start, end, "hours",true);
-  
+  return span;
 }
 
 
