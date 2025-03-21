@@ -2,6 +2,7 @@
 // require('moment-timezone') を削除
 //ぐぐったらみつかった　posixtz対応のmoment-timezone.jsかくちょうらいぶららりー
 //https://github.com/jdiamond/posixtz/blob/master/index.js
+//2025/03/21　dateformat_posixもたぶんうまく動いていないようなので変更, z はzoneparserがいるので未対応
 //2025/03/20　posix 対応javascriptを見つけたがばぐってるので修正（）、たぶんもとはUTCサーバーたいむじゃないと動かないハズ（）
 //ぐろっくたんの評価　https://grok.com/share/bGVnYWN5_7dee4cb7-10a9-4f1c-bea4-540a91679d5c
 
@@ -199,8 +200,8 @@ function getOffsetForLocalDateWithPosixTZ(localDate, posixTZ) {
 
   if (parsedTZ.dst) {
     const year = dt.year();
-    const dstStart = transitionToDate(year, parsedTZ.dstStart,parsedTZ.stdOffset/60);
-    const dstEnd = transitionToDate(year, parsedTZ.dstEnd,parsedTZ.dstOffset/60);
+    const dstStart = transitionToDate(year, parsedTZ.dstStart,parsedTZ.stdOffset);
+    const dstEnd = transitionToDate(year, parsedTZ.dstEnd,parsedTZ.dstOffset);
    
 
   　if(dstStart > dstEnd){
@@ -238,91 +239,52 @@ function getOffsetForLocalDateWithPosixTZ(localDate, posixTZ) {
 
 
     dt.set({ hour, minute, second });
-    dt.add(-offset,"hours")
+    dt.subtract(offset,'m');
 
     return dt.toDate();
   }
 }
 
 function formatLocalDateWithOffset(localDate, posixTZ) {
-  const dt = moment.utc(localDate);
+  const dt = moment(localDate);//utc not needed
   const offset = getOffsetForLocalDateWithPosixTZ(dt, posixTZ);
-  const dtWithOffset = dt.clone().utcOffset(offset);
 
-  return dt.format('YYYY-MM-DDTHH:mm:ss') + dtWithOffset.format('Z');
+  return  dt.utcOffset(offset).format('YYYY-MM-DDTHH:mm:ssZ');
 }
 
-
-function testParsePosixTZ() {
-  //"<-03>3<-02>,M3.5.0/02,M10.5.0/03";
-  // '<+1030>-10:30<+11>-11,M10.1.0,M4.1.0';
-  const tz ='<+1030>-10:30<+11>-11,M10.1.0,M4.1.0';
-  const parsed = posixtz.parsePosixTZ(tz);
-var tzz=getOffsetForLocalDateWithPosixTZ('2025-04-06T01:00:00+10:30', tz)/60;
-var tzd=getOffsetForLocalDateWithPosixTZ('2025-04-06T01:30:00+10:30', tz)/60;
-var tza=getOffsetForLocalDateWithPosixTZ('2025-10-05T02:00:00+11:00', tz)/60;
-var tzda=getOffsetForLocalDateWithPosixTZ('2025-10-05T02:30:00+11:00', tz)/60;
-
-  return tz; // セルに表示する値を返す
+//add custom function
+function getOffset_PosixTZ(localDate, posixTZ,mode) {
+var unit= moment.normalizeUnits(mode);
+var offset=  getOffsetForLocalDateWithPosixTZ(localDate, posixTZ);
+switch (unit) {//h hours alies,momentjis
+            case 'millisecond':
+                return offset*60*1000;
+            case 'second':
+                return offset*60;
+            case 'minute':
+                return offset;
+            case 'hour':
+                return offset/60;
+            case 'day':
+                return offset/60/24;
+            default:
+                return offset; 
+                }
+return;
 }
 
-function posixtzzz_autralia(){//2025年4月6日（日）3時0分 AEDT
+function dateFormat_PosixTZ(localDate, posixTZ,tz_format) {
+  const dt = moment(localDate);
+  const offset = getOffsetForLocalDateWithPosixTZ(dt, posixTZ);
+  dt.utcOffset(offset);
 
-var tz=getOffsetForLocalDateWithPosixTZ('2024-10-06T01:00:00+10:00', 'AEST-10AEDT,M10.1.0,M4.1.0/3')/60;
-var tzd=getOffsetForLocalDateWithPosixTZ('2024-10-06T02:00:00+10:00', 'AEST-10AEDT,M10.1.0,M4.1.0/3')/60;
-var tza=getOffsetForLocalDateWithPosixTZ('2025-04-06T02:00:00+11:00', 'AEST-10AEDT,M10.1.0,M4.1.0/3')/60;
-var tzda=getOffsetForLocalDateWithPosixTZ('2025-04-06T03:00:00+11:00', 'AEST-10AEDT,M10.1.0,M4.1.0/3')/60;
+  //const parsedTZ = parsePosixTZ(posixTZ);
+  //var isDST=dt.isDST();   z not　support
+  //to z support need parse packed_zone string ,generate by posix_string
+  //https://momentjs.com/timezone/docs/#/data-loading/adding-a-zone/
+  //https://momentjs.com/timezone/docs/#/data-formats/packed-format/
 
-  return tz; // セルに表示する値を返す
+  tz_format=tz_format.replace(/z/gm,"");
+
+  return dt.format(tz_format);
 }
-
-function posixtzzz_america(){
-var tz=getOffsetForLocalDateWithPosixTZ('2025-11-02T01:30:00-07:00', 'PST8PDT,M3.2.0,M11.1.0')/60;
-var tzd=getOffsetForLocalDateWithPosixTZ('2025-11-02T02:30:00-07:00', 'PST8PDT,M3.2.0,M11.1.0')/60;
-var tza=getOffsetForLocalDateWithPosixTZ('2025-03-09T03:00:00-07:00', 'PST8PDT,M3.2.0,M11.1.0')/60;
-var tzda=getOffsetForLocalDateWithPosixTZ('2025-03-09T02:00:00-07:00', 'PST8PDT,M3.2.0,M11.1.0')/60;
-
-  return tz; // セルに表示する値を返す
-}
-
-
-
-function getLocalTZ(tz) {
-  const parts = tz.split(',');
-  const localTZ = parts[0];
-
-  // localTZ の部分だけをマッチさせる正規表現
-  const regex = /^(?:<[+-]\d{2,4}>-\d{1,2}(?::[0-5]\d)?(?:<[+-]\d{2,4}>-\d{1,2}(?::[0-5]\d)?)?|<[+-]\d{2,4}>-\d{1,2}(?::[0-5]\d)?|[A-Za-z]{3,}[-+]?\d+(?::[0-5]\d)?(?:[A-Za-z]{3,})?|<-?\d+>\d(?:<-?\d+>)?|[A-Za-z]{3,}[-+]?\d+)$/;
-
-  if (regex.test(localTZ)) {
-    return localTZ;
-  } else {
-    return null; // またはエラー処理
-  }
-}
-
-
-const testStrings = [
-    "PST8PDT,M3.2.0,M11.1.0",
-    "MST7MDT,M3.2.0,M11.1.0",
-    "CST6CDT,M3.2.0,M11.1.0",
-    "EST5EDT,M3.2.0,M11.1.0",
-    "AEST-10AEDT,M10.1.0,M4.1.0/3",
-    "<+1030>-10:30<+11>-11,M10.1.0,M4.1.0",
-    "<+0545>-5:45",
-    "CET-1CEST,M3.5.0/02,M10.5.0/03",
-    "<-03>3",
-    "<-03>3<-02>,M3.5.0/02,M10.5.0/03",
-    "JST-9",
-    "GMT5"
-];
-
-testStrings.forEach(tz => {
-    const extracted = getLocalTZ(tz);
-    if (extracted) {
-      console.log(`Original: ${tz}, Extracted: ${extracted}`);
-    } else
-    {
-      console.log(`Original: ${tz}, Extracted: Error`);
-    }
-});

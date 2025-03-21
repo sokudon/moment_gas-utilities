@@ -27,18 +27,6 @@ async function loadAndVerifyScript(url,expectedHash) {
     var scriptText = response.getContentText(); // 実行用に文字列を取得
     Logger.log('ハッシュ検証成功、スクリプトを実行します');
     // Functionコンストラクタで関数を生成
-    var urls="https://raw.githubusercontent.com/jdiamond/posixtz/refs/heads/master/index.js";
-    if(url==urls){
-      var rp=`const posixtz = {
-  formatPosixTZ: formatPosixTZ,
-  parsePosixTZ: parsePosixTZ,
-  getOffsetForLocalDateWithPosixTZ: getOffsetForLocalDateWithPosixTZ,
-  formatLocalDateWithOffset: formatLocalDateWithOffset
-};`;
-  scriptText=scriptText.replace("const moment = require('moment-timezone');",rp);
-  scriptText=scriptText.replace(/exports.+/gm,"");
-
-    }
     const func = new Function(scriptText);
     // 生成した関数を実行
     func();
@@ -69,7 +57,6 @@ var momentTzDataUrl_Hash = 'sha512-jLUMbCfI1lDcEvTFsTBgTBvOG4BbvqvZXan+7pwrB0twY
 function posixtzzz(){
 var tz=getOffsetForLocalDateWithPosixTZ('2025-11-02T02:30:00-07:00', 'PST8PDT,M3.2.0,M11.1.0')/60;
 
-var s=testTimeSpantz();
   return tz; // セルに表示する値を返す
 }
 
