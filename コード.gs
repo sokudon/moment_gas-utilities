@@ -54,10 +54,12 @@ var momentTzDataUrl_Hash = 'sha512-jLUMbCfI1lDcEvTFsTBgTBvOG4BbvqvZXan+7pwrB0twY
   // loadAndVerifyScript(urls,posixtz_Hash);
 }
 
-function posixtzzz(){
-var tz=getOffsetForLocalDateWithPosixTZ('2025-11-02T02:30:00-07:00', 'PST8PDT,M3.2.0,M11.1.0')/60;
+function offset_posix(localDate, posixTZ,mode){
+  return getOffset_PosixTZ(localDate, posixTZ,mode)
+}
 
-  return tz; // セルに表示する値を返す
+function date_posix(localDate, posixTZ,tz_format){
+return dateFormat_PosixTZ(localDate, posixTZ,tz_format);
 }
 
 // カスタム関数
